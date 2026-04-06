@@ -50,3 +50,7 @@ extend-select = ["UP"]
 ignore = [
     "F722"
 ]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
