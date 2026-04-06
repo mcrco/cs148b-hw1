@@ -43,7 +43,7 @@ def train_bpe(
     # Repeatedly pop pair of tokens with highest frequency and merge until
     # vocab size is reached or no more pairs can be merged.
     merges = []
-    effective_vocab_size = vocab_size - len(special_tokens)
+    effective_vocab_size = vocab_size - (len(special_tokens) if special_tokens is not None else 0)
     while pair_count_heap and len(bytes_to_idx) < effective_vocab_size:
         best_cand = heappop(pair_count_heap)
         max_pair, max_count = best_cand.pair, best_cand.count
@@ -98,9 +98,10 @@ def train_bpe(
         pair_counts[(max_pair[0], max_pair[1])] = 0
 
     # Add special tokens to vocabulary.
-    for special_token in special_tokens:
-        if special_token not in bytes_to_idx:
-            bytes_to_idx[special_token.encode('utf-8')] = len(bytes_to_idx)
+    if special_tokens:
+        for special_token in special_tokens:
+            if special_token not in bytes_to_idx:
+                bytes_to_idx[special_token.encode("utf-8")] = len(bytes_to_idx)
 
     vocab = {bytes_to_idx[byte]: byte for byte in bytes_to_idx}
     return vocab, list(merges)
