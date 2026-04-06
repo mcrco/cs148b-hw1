@@ -3,7 +3,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from heapq import heapify, heappop, heappush
 
-from .utils import apply_merges, pretokenize, str_to_bytes_list
+from .utils import apply_merges, get_pretoken_counts, str_to_bytes_list
 
 
 @dataclass
@@ -22,7 +22,7 @@ def train_bpe(
 ) -> tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
     with open(input_path) as f:
         text = f.read()
-    pretoken_counts = pretokenize(text, special_tokens)
+    pretoken_counts = get_pretoken_counts(text, special_tokens)
 
     # Set up initial token vocabulary of all possible bytes and map tokens to pretokens.
     possible_bytes = [bytes([i]) for i in range(256)]
@@ -43,6 +43,7 @@ def train_bpe(
     # Repeatedly pop pair of tokens with highest frequency and merge until
     # vocab size is reached or no more pairs can be merged.
     merges = []
+    merge_dict: dict[tuple[bytes, bytes], int] = {}
     effective_vocab_size = vocab_size - (len(special_tokens) if special_tokens is not None else 0)
     while pair_count_heap and len(bytes_to_idx) < effective_vocab_size:
         best_cand = heappop(pair_count_heap)
@@ -58,7 +59,7 @@ def train_bpe(
         updated_pairs: set[tuple[bytes, bytes]] = set()
         for pretoken in pair_pretokens[max_pair]:
             # Process pretoken into existing tokens (including new one).
-            seq = apply_merges(str_to_bytes_list(pretoken), merges)
+            seq = apply_merges(str_to_bytes_list(pretoken), merge_dict)
 
             # If new token is t1 + t2, for any previous sequence prev -> t1 ->
             # t2 -> next, we should decrement the pair counts for (prev, t1) and
@@ -94,6 +95,7 @@ def train_bpe(
 
         # Register pair as merge/new token and remove its count.
         merges.append(max_pair)
+        merge_dict[max_pair] = len(merge_dict)
         bytes_to_idx[new_token] = len(bytes_to_idx)
         pair_counts[(max_pair[0], max_pair[1])] = 0
 
@@ -104,4 +106,4 @@ def train_bpe(
                 bytes_to_idx[special_token.encode("utf-8")] = len(bytes_to_idx)
 
     vocab = {bytes_to_idx[byte]: byte for byte in bytes_to_idx}
-    return vocab, list(merges)
+    return vocab, merges

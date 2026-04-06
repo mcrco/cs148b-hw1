@@ -1,6 +1,7 @@
-import re
-from collections import defaultdict
-from heapq import heappop, heappush
+import json
+from collections.abc import Iterable, Iterator
+
+from eecs148b_hw1.bpe.utils import apply_merges, pretokenizer, split_on_special_tokens, str_to_bytes_list
 
 
 class BPETokenizer:
@@ -9,34 +10,45 @@ class BPETokenizer:
     ):
         self.vocab = vocab
         self.vocab_idx = {v: k for k, v in self.vocab.items()}
-        self.merges = set(merges)
+        self.merges = merges
+        self.merge_dict = {pair: i for i, pair in enumerate(merges)}
         self.special_tokens = special_tokens
 
     @classmethod
-    def from_files(cls, vocab_filepath: str, merges_filepath: str, special_tokens: list[str] | None = None):
-        pass
+    def from_files(
+        cls, vocab_filepath: str, merges_filepath: str, special_tokens: list[str] | None = None
+    ) -> "BPETokenizer":
+        """No clue if this actually works (probably doesn't)."""
+        with open(vocab_filepath, "rb") as f:
+            vocab = json.load(f)
+        with open(merges_filepath, "rb") as f:
+            pairs = [line.split() for line in f.readlines()]
+            merges = [(pair[0], pair[1]) for pair in pairs]
+
+        return BPETokenizer(vocab, merges, special_tokens)
 
     def encode(self, text: str) -> list[int]:
-        """
-        Uses internal merges to encode a string into a list of integers.
-        """
+        if self.special_tokens:
+            chunks = split_on_special_tokens(text, self.special_tokens)
+        else:
+            chunks = [text]
 
-        tokenized = list(text.encode("utf-8"))
-        idx = 1
-        while idx < len(tokenized):
-            # maybe merge with previous token
-            if (tokenized[idx - 1], tokenized[idx]) in self.merges:
-                tokenized = (
-                    tokenized[: idx - 1] + self.merges[(tokenized[idx - 1], tokenized[idx])] + tokenized[idx + 1 :]
-                )
-                idx -= 1
-            # maybe merge with next token
-            elif (tokenized[idx], tokenized[idx + 1]) in self.merges:
-                tokenized = tokenized[:idx] + self.merges[(tokenized[idx], tokenized[idx + 1])] + tokenized[idx + 2 :]
-            # move on for now, but step 1 allows us to come back if needed
+        ids = []
+        for chunk in chunks:
+            if self.special_tokens and chunk in self.special_tokens:
+                ids.append(self.vocab_idx[chunk.encode("utf-8")])
             else:
-                idx += 1
-        return [self.vocab_idx[token] for token in tokenized]
+                pretokens = pretokenizer.findall(chunk)
+                for pretoken in pretokens:
+                    seq = str_to_bytes_list(pretoken)
+                    seq = apply_merges(seq, self.merge_dict)
+                    for token in seq:
+                        ids.append(self.vocab_idx[token])
+        return ids
+
+    def encode_iterable(self, iterable: Iterable[str]) -> Iterator[int]:
+        for s in iterable:
+            yield from self.encode(s)
 
     def decode(self, ids: list[int]) -> str:
-        return "".join([self.vocab[id] for id in ids])
+        return b"".join([self.vocab[tid] for tid in ids]).decode("utf-8", errors="replace")
