@@ -11,7 +11,7 @@ class Linear(nn.Module):
         self.device = device
         self.dtype = dtype
 
-        data = torch.zeros(self.shape, dtype=self.dtype)
+        data = torch.zeros(self.shape, dtype=self.dtype, device=self.device)
         nn.init.trunc_normal_(data)
         self.W = nn.Parameter(data)
 
