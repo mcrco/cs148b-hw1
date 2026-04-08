@@ -1,3 +1,5 @@
+import math
+
 import torch
 import torch.nn as nn
 
@@ -11,8 +13,11 @@ class Linear(nn.Module):
         self.device = device
         self.dtype = dtype
 
+        # Initialize weights ~ N(0, 2/(d_in + d_out)) truncated to within 3 sigma.
         data = torch.zeros(self.shape, dtype=self.dtype, device=self.device)
-        nn.init.trunc_normal_(data)
+        mean = 0
+        std = math.sqrt(2 / (self.in_features + self.out_features))
+        nn.init.trunc_normal_(data, mean=mean, std=std, a=math.sqrt(3) * std, b=math.sqrt(3) * std)
         self.W = nn.Parameter(data)
 
     def forward(self, x: torch.Tensor):
