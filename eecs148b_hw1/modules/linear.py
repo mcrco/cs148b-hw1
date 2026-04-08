@@ -17,7 +17,7 @@ class Linear(nn.Module):
         data = torch.zeros(self.shape, dtype=self.dtype, device=self.device)
         mean = 0
         std = math.sqrt(2 / (self.in_features + self.out_features))
-        nn.init.trunc_normal_(data, mean=mean, std=std, a=math.sqrt(3) * std, b=math.sqrt(3) * std)
+        nn.init.trunc_normal_(data, mean=mean, std=std, a=-3 * std, b=3 * std)
         self.W = nn.Parameter(data)
 
     def forward(self, x: torch.Tensor):
