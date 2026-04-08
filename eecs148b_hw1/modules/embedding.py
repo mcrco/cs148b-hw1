@@ -9,6 +9,8 @@ class Embedding(nn.Module):
         self.embedding_dim = embedding_dim
         self.device = device
         self.dtype = dtype
+
+        # Initialize embeddings ~ N(0, 1) truncated to [-3, 3].
         data = torch.zeros((self.num_embeddings, self.embedding_dim), dtype=self.dtype, device=self.device)
         nn.init.trunc_normal_(data, mean=0, std=1, a=-3, b=3)
         self.lut = nn.Parameter(data)
