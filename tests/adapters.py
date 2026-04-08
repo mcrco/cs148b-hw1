@@ -10,6 +10,7 @@ from torch import Tensor
 
 from eecs148b_hw1.bpe import train_bpe
 from eecs148b_hw1.bpe.tokenizer import BPETokenizer
+from eecs148b_hw1.modules.embedding import Embedding
 from eecs148b_hw1.modules.linear import Linear
 
 
@@ -54,7 +55,9 @@ def run_embedding(
     Returns:
         Float[Tensor, "... d_model"]: Batch of embeddings returned by your Embedding layer.
     """
-    raise NotImplementedError
+    embedding = Embedding(vocab_size, d_model)
+    embedding.load_state_dict({"lut": weights})
+    return embedding(token_ids)
 
 
 def run_ffn(
