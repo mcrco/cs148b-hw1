@@ -11,6 +11,7 @@ from torch import Tensor
 from eecs148b_hw1.bpe import train_bpe
 from eecs148b_hw1.bpe.tokenizer import BPETokenizer
 from eecs148b_hw1.modules.embedding import Embedding
+from eecs148b_hw1.modules.layernorm import LayerNorm
 from eecs148b_hw1.modules.linear import Linear
 
 
@@ -109,7 +110,9 @@ def run_layernorm(
     Returns:
         Float[Tensor, "... d_model"]: Tensor with the output of running LayerNorm on `in_features`.
     """
-    raise NotImplementedError
+    layernorm = LayerNorm(d_model, eps)
+    layernorm.load_state_dict({"G": weight, "b": bias})
+    return layernorm(in_features)
 
 
 def run_sinusoidal_pe(
