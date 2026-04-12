@@ -20,6 +20,7 @@ from eecs148b_hw1.modules.lm import TransformerLM
 from eecs148b_hw1.modules.loss import cross_entropy_loss
 from eecs148b_hw1.modules.positional_encoding import SinusoidalPositionalEncoding
 from eecs148b_hw1.modules.transformer import TransformerBlock
+from eecs148b_hw1.train.data_loading import get_batch
 
 
 def run_linear(
@@ -369,7 +370,7 @@ def run_get_batch(
         is the sampled input sequences, and the second tuple item is the corresponding
         language modeling labels.
     """
-    raise NotImplementedError
+    return get_batch(dataset, batch_size, context_length, device)
 
 
 def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, " ..."]:
