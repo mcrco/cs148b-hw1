@@ -11,6 +11,7 @@ from torch import Tensor
 from eecs148b_hw1.bpe import train_bpe
 from eecs148b_hw1.bpe.tokenizer import BPETokenizer
 from eecs148b_hw1.modules.activation import softmax
+from eecs148b_hw1.modules.attention import scaled_dot_product_attention
 from eecs148b_hw1.modules.embedding import Embedding
 from eecs148b_hw1.modules.ffn import FFN
 from eecs148b_hw1.modules.layernorm import LayerNorm
@@ -142,7 +143,7 @@ def run_scaled_dot_product_attention(
     Returns:
         Float[Tensor, " ... queries d_v"]: Output of SDPA
     """
-    raise NotImplementedError
+    return scaled_dot_product_attention(Q, K, V, mask)
 
 
 def run_multihead_self_attention(
