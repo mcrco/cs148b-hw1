@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from eecs148b_hw1.modules.common import init_normal_params
+
 
 class Embedding(nn.Module):
     def __init__(self, num_embeddings, embedding_dim, device=None, dtype=None):
@@ -11,9 +13,9 @@ class Embedding(nn.Module):
         self.dtype = dtype
 
         # Initialize embeddings ~ N(0, 1) truncated to [-3, 3].
-        data = torch.zeros((self.num_embeddings, self.embedding_dim), dtype=self.dtype, device=self.device)
-        nn.init.trunc_normal_(data, mean=0, std=1, a=-3, b=3)
-        self.lut = nn.Parameter(data)
+        self.lut = init_normal_params(
+            (self.num_embeddings, self.embedding_dim), 0, 1, -3, 3, dtype=dtype, device=device
+        )
 
     def forward(self, token_ids: torch.Tensor) -> torch.Tensor:
         return self.lut[token_ids.long()]
