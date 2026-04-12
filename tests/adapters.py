@@ -17,6 +17,7 @@ from eecs148b_hw1.modules.ffn import FeedForwardNetwork
 from eecs148b_hw1.modules.layernorm import LayerNorm
 from eecs148b_hw1.modules.linear import Linear
 from eecs148b_hw1.modules.lm import TransformerLM
+from eecs148b_hw1.modules.loss import cross_entropy_loss
 from eecs148b_hw1.modules.positional_encoding import SinusoidalPositionalEncoding
 from eecs148b_hw1.modules.transformer import TransformerBlock
 
@@ -402,7 +403,7 @@ def run_cross_entropy(
     Returns:
         Float[Tensor, ""]: The average cross-entropy loss across examples.
     """
-    raise NotImplementedError
+    return cross_entropy_loss(inputs, targets)
 
 
 def get_tokenizer(
