@@ -16,6 +16,7 @@ from eecs148b_hw1.modules.embedding import Embedding
 from eecs148b_hw1.modules.ffn import FeedForwardNetwork
 from eecs148b_hw1.modules.layernorm import LayerNorm
 from eecs148b_hw1.modules.linear import Linear
+from eecs148b_hw1.modules.lm import TransformerLM
 from eecs148b_hw1.modules.positional_encoding import SinusoidalPositionalEncoding
 from eecs148b_hw1.modules.transformer import TransformerBlock
 
@@ -62,7 +63,7 @@ def run_embedding(
         Float[Tensor, "... d_model"]: Batch of embeddings returned by your Embedding layer.
     """
     embedding = Embedding(vocab_size, d_model)
-    embedding.load_state_dict({"lut": weights})
+    embedding.load_state_dict({"weight": weights})
     return embedding(token_ids)
 
 
@@ -342,7 +343,9 @@ def run_transformer_lm(
         Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized
         next-word distribution for each token.
     """
-    raise NotImplementedError
+    lm = TransformerLM(d_model, num_heads, d_ff, vocab_size, context_length, num_layers)
+    lm.load_state_dict(weights)
+    return lm(in_indices)
 
 
 def run_get_batch(

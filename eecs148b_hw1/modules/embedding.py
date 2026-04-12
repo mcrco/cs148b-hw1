@@ -13,9 +13,9 @@ class Embedding(nn.Module):
         self.dtype = dtype
 
         # Initialize embeddings ~ N(0, 1) truncated to [-3, 3].
-        self.lut = init_normal_params(
+        self.weight = init_normal_params(
             (self.num_embeddings, self.embedding_dim), 0, 1, -3, 3, dtype=dtype, device=device
         )
 
     def forward(self, token_ids: torch.Tensor) -> torch.Tensor:
-        return self.lut[token_ids.long()]
+        return self.weight[token_ids.long()]
