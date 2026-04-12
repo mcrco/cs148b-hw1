@@ -10,7 +10,7 @@ from torch import Tensor
 
 from eecs148b_hw1.bpe import train_bpe
 from eecs148b_hw1.bpe.tokenizer import BPETokenizer
-from eecs148b_hw1.data import get_batch
+from eecs148b_hw1.data import get_random_batch
 from eecs148b_hw1.modules.activation import softmax
 from eecs148b_hw1.modules.attention import MultiHeadSelfAttention, scaled_dot_product_attention
 from eecs148b_hw1.modules.embedding import Embedding
@@ -370,7 +370,7 @@ def run_get_batch(
         is the sampled input sequences, and the second tuple item is the corresponding
         language modeling labels.
     """
-    return get_batch(dataset, batch_size, context_length, device)
+    return get_random_batch(dataset, batch_size, context_length, device)
 
 
 def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, " ..."]:
