@@ -20,5 +20,5 @@ class Linear(nn.Module):
         nn.init.trunc_normal_(data, mean=mean, std=std, a=-3 * std, b=3 * std)
         self.W = nn.Parameter(data)
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x @ self.W.T

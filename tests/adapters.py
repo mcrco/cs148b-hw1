@@ -11,6 +11,7 @@ from torch import Tensor
 from eecs148b_hw1.bpe import train_bpe
 from eecs148b_hw1.bpe.tokenizer import BPETokenizer
 from eecs148b_hw1.modules.embedding import Embedding
+from eecs148b_hw1.modules.ffn import FFN
 from eecs148b_hw1.modules.layernorm import LayerNorm
 from eecs148b_hw1.modules.linear import Linear
 
@@ -81,13 +82,9 @@ def run_ffn(
     Returns:
         Float[Tensor, "... d_model"]: Output embeddings of the same shape as the input embeddings.
     """
-    # Example:
-    # If your state dict keys match, you can use `load_state_dict()`
-    # ffn.load_state_dict({"fc1.weight": w1_weight, "fc2.weight": w2_weight})
-    # You can also manually assign the weights
-    # ffn.fc1.weight.data = w1_weight
-    # ffn.fc2.weight.data = w2_weight
-    raise NotImplementedError
+    ffn = FFN(d_model, d_ff)
+    ffn.load_state_dict({"fc1.W": w1_weight, "fc2.W": w2_weight})
+    return ffn(in_features)
 
 
 def run_layernorm(
