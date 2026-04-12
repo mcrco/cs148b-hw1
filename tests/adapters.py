@@ -14,6 +14,7 @@ from eecs148b_hw1.modules.embedding import Embedding
 from eecs148b_hw1.modules.ffn import FFN
 from eecs148b_hw1.modules.layernorm import LayerNorm
 from eecs148b_hw1.modules.linear import Linear
+from eecs148b_hw1.modules.positional_encoding import SinusoidalPositionalEncoding
 
 
 def run_linear(
@@ -118,7 +119,8 @@ def run_sinusoidal_pe(
     token_positions: Int[Tensor, " ... sequence_length"],
 ) -> Float[Tensor, " ... sequence_length d_model"]:
     """Return sinusoidal positional embeddings for the given token positions."""
-    raise NotImplementedError
+    pe = SinusoidalPositionalEncoding(d_model, max_seq_len)
+    return pe(token_positions)
 
 
 def run_scaled_dot_product_attention(
