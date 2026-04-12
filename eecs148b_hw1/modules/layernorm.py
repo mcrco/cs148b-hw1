@@ -13,8 +13,8 @@ class LayerNorm(nn.Module):
         # Initialize affine transformation weights to 1 and bias to 0.
         weights = torch.ones(self.d_model, dtype=self.dtype, device=self.device)
         bias = torch.zeros(self.d_model, dtype=self.dtype, device=self.device)
-        self.G = nn.Parameter(weights)
-        self.b = nn.Parameter(bias)
+        self.weight = nn.Parameter(weights)
+        self.bias = nn.Parameter(bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Save curent dtype and cast to float32.
@@ -25,7 +25,7 @@ class LayerNorm(nn.Module):
         mean = x.mean(dim=-1, keepdim=True)
         var = x.var(dim=-1, unbiased=False, keepdim=True)
         norm = (x - mean) / torch.sqrt(var + self.eps)
-        out = norm * self.G + self.b
+        out = norm * self.weight + self.bias
 
         # Cast back to original dtype.
         out = out.to(in_dtype)

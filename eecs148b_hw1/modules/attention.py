@@ -34,19 +34,19 @@ class MultiHeadSelfAttention(nn.Module):
         self.d_k = self.d_model // self.num_heads
         self.d_v = self.d_model // self.num_heads
 
-        self.W_q = Linear(self.d_model, self.d_model, device=self.device, dtype=self.dtype)
-        self.W_k = Linear(self.d_model, self.d_model, device=self.device, dtype=self.dtype)
-        self.W_v = Linear(self.d_model, self.d_model, device=self.device, dtype=self.dtype)
-        self.W_o = Linear(self.d_model, self.d_model, device=self.device, dtype=self.dtype)
+        self.q_proj = Linear(self.d_model, self.d_model, device=self.device, dtype=self.dtype)
+        self.k_proj = Linear(self.d_model, self.d_model, device=self.device, dtype=self.dtype)
+        self.v_proj = Linear(self.d_model, self.d_model, device=self.device, dtype=self.dtype)
+        self.output_proj = Linear(self.d_model, self.d_model, device=self.device, dtype=self.dtype)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch_size, seq_len = x.shape[0], x.shape[1]
         # For each of the linear layer outputs, we have B x S x d_model.
         # We want to reshape the concatenated projections into projections per head, which is B x S x H x d_k/d_v.
         # Then, we want to do attention, but the expected dimensions are B x ... x S x d_k/d_v, so we transpose again.
-        Q = self.W_q(x).reshape(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
-        K = self.W_k(x).reshape(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
-        V = self.W_v(x).reshape(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+        Q = self.q_proj(x).reshape(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+        K = self.k_proj(x).reshape(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+        V = self.v_proj(x).reshape(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
         # Causal mask should have mask[i, j] = 1 for i <= j, which is lower triangle of ones.
         mask = torch.tril(torch.ones(seq_len, seq_len, device=self.device, dtype=torch.bool))
         # Unsqueeze first two dims so it can broadcast to B x H x S x S.
@@ -55,4 +55,4 @@ class MultiHeadSelfAttention(nn.Module):
         # Right now, the output is B x H x S x D.
         # We want to go back to the origianl B x S x d_model.
         attention = attention.transpose(1, 2).reshape(batch_size, seq_len, self.d_model)
-        return self.W_o(attention)
+        return self.output_proj(attention)

@@ -17,6 +17,7 @@ from eecs148b_hw1.modules.ffn import FFN
 from eecs148b_hw1.modules.layernorm import LayerNorm
 from eecs148b_hw1.modules.linear import Linear
 from eecs148b_hw1.modules.positional_encoding import SinusoidalPositionalEncoding
+from eecs148b_hw1.modules.transformer import TransformerBlock
 
 
 def run_linear(
@@ -38,7 +39,7 @@ def run_linear(
         Float[Tensor, "... d_out"]: The transformed output of your linear module.
     """
     linear = Linear(d_in, d_out)
-    linear.load_state_dict({"W": weights})
+    linear.load_state_dict({"weight": weights})
     return linear(in_features)
 
 
@@ -86,7 +87,7 @@ def run_ffn(
         Float[Tensor, "... d_model"]: Output embeddings of the same shape as the input embeddings.
     """
     ffn = FFN(d_model, d_ff)
-    ffn.load_state_dict({"fc1.W": w1_weight, "fc2.W": w2_weight})
+    ffn.load_state_dict({"fc1.weight": w1_weight, "fc2.weight": w2_weight})
     return ffn(in_features)
 
 
@@ -180,10 +181,10 @@ def run_multihead_self_attention(
     mha = MultiHeadSelfAttention(d_model, num_heads)
     mha.load_state_dict(
         {
-            "W_q.W": q_proj_weight,
-            "W_k.W": k_proj_weight,
-            "W_v.W": v_proj_weight,
-            "W_o.W": o_proj_weight,
+            "q_proj.weight": q_proj_weight,
+            "k_proj.weight": k_proj_weight,
+            "v_proj.weight": v_proj_weight,
+            "o_proj.weight": o_proj_weight,
         }
     )
     return mha(in_features)
@@ -255,7 +256,9 @@ def run_transformer_block(
         Float[Tensor, "batch sequence_length d_model"] Tensor with the output of
         running the Transformer block on the input features.
     """
-    raise NotImplementedError
+    transformer_block = TransformerBlock(d_model, num_heads, d_ff)
+    transformer_block.load_state_dict(weights)
+    return transformer_block(in_features)
 
 
 def run_transformer_lm(

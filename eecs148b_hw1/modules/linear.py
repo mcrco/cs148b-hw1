@@ -18,7 +18,9 @@ class Linear(nn.Module):
         # Initialize weights ~ N(0, 2/(d_in + d_out)) truncated to within 3 sigma.
         mean = 0
         std = math.sqrt(2 / (self.in_features + self.out_features))
-        self.W = init_normal_params(self.shape, mean=mean, std=std, a=-3 * std, b=3 * std, dtype=dtype, device=device)
+        self.weight = init_normal_params(
+            self.shape, mean=mean, std=std, a=-3 * std, b=3 * std, dtype=dtype, device=device
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x @ self.W.T
+        return x @ self.weight.T
