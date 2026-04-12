@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 
 
 def cross_entropy_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
@@ -15,3 +14,7 @@ def cross_entropy_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Ten
     log_probs = logits - max_logits - torch.log(torch.exp(logits - max_logits).sum(dim=-1, keepdim=True))
     losses = -log_probs[torch.arange(logits.shape[0]), targets]
     return losses.mean()
+
+
+def perplexity(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    return torch.exp(cross_entropy_loss(logits, targets))
