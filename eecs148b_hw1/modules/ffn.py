@@ -1,12 +1,8 @@
 import torch
 import torch.nn as nn
 
+from .activation import relu
 from .linear import Linear
-
-
-def relu(x: torch.Tensor) -> torch.Tensor:
-    # Apparently torch.where is differentiable so this works.
-    return torch.where(x > 0.0, x, 0.0).to(x.dtype)
 
 
 class FFN(nn.Module):
