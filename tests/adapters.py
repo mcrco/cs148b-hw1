@@ -13,7 +13,7 @@ from eecs148b_hw1.bpe.tokenizer import BPETokenizer
 from eecs148b_hw1.modules.activation import softmax
 from eecs148b_hw1.modules.attention import MultiHeadSelfAttention, scaled_dot_product_attention
 from eecs148b_hw1.modules.embedding import Embedding
-from eecs148b_hw1.modules.ffn import FFN
+from eecs148b_hw1.modules.ffn import FeedForwardNetwork
 from eecs148b_hw1.modules.layernorm import LayerNorm
 from eecs148b_hw1.modules.linear import Linear
 from eecs148b_hw1.modules.positional_encoding import SinusoidalPositionalEncoding
@@ -86,7 +86,7 @@ def run_ffn(
     Returns:
         Float[Tensor, "... d_model"]: Output embeddings of the same shape as the input embeddings.
     """
-    ffn = FFN(d_model, d_ff)
+    ffn = FeedForwardNetwork(d_model, d_ff)
     ffn.load_state_dict({"fc1.weight": w1_weight, "fc2.weight": w2_weight})
     return ffn(in_features)
 

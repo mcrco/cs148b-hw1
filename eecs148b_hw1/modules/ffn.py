@@ -5,7 +5,7 @@ from .activation import relu
 from .linear import Linear
 
 
-class FFN(nn.Module):
+class FeedForwardNetwork(nn.Module):
     def __init__(self, d_model: int, d_ff: int, dtype=None, device=None):
         super().__init__()
         self.d_model = d_model

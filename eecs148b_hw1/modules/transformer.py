@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from eecs148b_hw1.modules.attention import MultiHeadSelfAttention
-from eecs148b_hw1.modules.ffn import FFN
+from eecs148b_hw1.modules.ffn import FeedForwardNetwork
 from eecs148b_hw1.modules.layernorm import LayerNorm
 
 
@@ -18,7 +18,7 @@ class TransformerBlock(nn.Module):
         self.ln1 = LayerNorm(d_model, dtype=dtype, device=device)
         self.attn = MultiHeadSelfAttention(d_model, num_heads, dtype=dtype, device=device)
         self.ln2 = LayerNorm(d_model, dtype=dtype, device=device)
-        self.ffn = FFN(d_model, d_ff, dtype=dtype, device=device)
+        self.ffn = FeedForwardNetwork(d_model, d_ff, dtype=dtype, device=device)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         y = x + self.attn(self.ln1(x))
