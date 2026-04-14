@@ -63,6 +63,7 @@ def train(
                 logits = model(x)
                 loss = cross_entropy_loss(logits, y)
                 wandb.log({"train/loss": loss}, step=pbar.n)
+                optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
                 scheduler.step()
@@ -75,7 +76,7 @@ def train(
             val_loss = 0
             val_pplx = 0
             for indices in val_batch_indices_list:
-                x, y = get_batch(train_dataset, indices, context_length, device)
+                x, y = get_batch(val_dataset, indices, context_length, device)
                 logits = model(x)
                 val_loss += torch.sum(cross_entropy_loss(logits, y)).item()
                 val_pplx += torch.sum(perplexity(logits, y)).item()

@@ -1,0 +1,103 @@
+"""Train the Transformer LM on TinyStories token ids stored as NumPy arrays."""
+
+from __future__ import annotations
+
+import argparse
+import os
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+import torch
+
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Train on TinyStories (tokenized .npy files).")
+    p.add_argument("--train-path", type=Path, default=Path("data/train.npy"), help="Path to training token array.")
+    p.add_argument("--val-path", type=Path, default=Path("data/val.npy"), help="Path to validation token array.")
+    p.add_argument("--vocab-size", type=int, default=10_000, help="Vocabulary size (must match BPE training).")
+
+    p.add_argument("--d-model", type=int, default=512)
+    p.add_argument("--num-heads", type=int, default=8)
+    p.add_argument("--d-ff", type=int, default=1024)
+    p.add_argument("--context-length", type=int, default=256)
+    p.add_argument("--num-layers", type=int, default=4)
+
+    p.add_argument("--epochs", type=int, default=1)
+    p.add_argument("--lr", type=float, default=3e-4)
+    p.add_argument("--batch-size", type=int, default=32)
+    p.add_argument("--warmup-steps", type=int, default=1000)
+    p.add_argument("--beta1", type=float, default=0.9)
+    p.add_argument("--beta2", type=float, default=0.999)
+    p.add_argument("--epsilon", type=float, default=1e-8)
+    p.add_argument("--weight-decay", type=float, default=0.01)
+
+    p.add_argument(
+        "--dtype",
+        choices=("float32", "float64"),
+        default="float32",
+        help="Model and optimizer compute dtype.",
+    )
+    p.add_argument("--device", default="cuda", help='Device, e.g. "cuda", "cuda:0", or "cpu".')
+
+    p.add_argument(
+        "--wandb-run-name",
+        default=None,
+        help="Weights are saved as weights/<name>.pth. Default: tinystories-YYYYMMDD-HHMMSS.",
+    )
+    p.add_argument(
+        "--no-wandb",
+        action="store_true",
+        help="Disable Weights & Biases logging (sets WANDB_MODE=disabled).",
+    )
+    return p.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    if args.no_wandb:
+        os.environ["WANDB_MODE"] = "disabled"
+
+    from eecs148b_hw1.training import train as run_train
+
+    train_path = args.train_path.resolve()
+    val_path = args.val_path.resolve()
+    if not train_path.is_file():
+        raise FileNotFoundError(f"Training data not found: {train_path}")
+    if not val_path.is_file():
+        raise FileNotFoundError(f"Validation data not found: {val_path}")
+
+    train_data = np.load(train_path, mmap_mode="r")
+    val_data = np.load(val_path, mmap_mode="r")
+
+    wandb_run_name = args.wandb_run_name
+    if wandb_run_name is None:
+        wandb_run_name = f"tinystories-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+
+    dtype = torch.float32 if args.dtype == "float32" else torch.float64
+
+    run_train(
+        d_model=args.d_model,
+        num_heads=args.num_heads,
+        d_ff=args.d_ff,
+        vocab_size=args.vocab_size,
+        context_length=args.context_length,
+        num_layers=args.num_layers,
+        epochs=args.epochs,
+        lr=args.lr,
+        batch_size=args.batch_size,
+        warmup_steps=args.warmup_steps,
+        beta1=args.beta1,
+        beta2=args.beta2,
+        epsilon=args.epsilon,
+        weight_decay=args.weight_decay,
+        train_dataset=train_data,
+        val_dataset=val_data,
+        wandb_run_name=wandb_run_name,
+        dtype=dtype,
+        device=args.device,
+    )
+
+
+if __name__ == "__main__":
+    main()
