@@ -10,7 +10,6 @@ from torch import Tensor
 
 from eecs148b_hw1.bpe import train_bpe
 from eecs148b_hw1.bpe.tokenizer import BPETokenizer
-from eecs148b_hw1.data import get_random_batch
 from eecs148b_hw1.modules.activation import softmax
 from eecs148b_hw1.modules.attention import MultiHeadSelfAttention, scaled_dot_product_attention
 from eecs148b_hw1.modules.embedding import Embedding
@@ -21,6 +20,7 @@ from eecs148b_hw1.modules.lm import TransformerLM
 from eecs148b_hw1.modules.loss import cross_entropy_loss
 from eecs148b_hw1.modules.positional_encoding import SinusoidalPositionalEncoding
 from eecs148b_hw1.modules.transformer import TransformerBlock
+from eecs148b_hw1.training.data import get_random_batch
 
 
 def run_linear(
@@ -457,4 +457,4 @@ def run_train_bpe(
                 representing that <token1> was merged with <token2>.
                 Merges are ordered by order of creation.
     """
-    return train_bpe(input_path, vocab_size, special_tokens)
+    return train_bpe(input_path, vocab_size, special_tokens, progress_bar=False)
