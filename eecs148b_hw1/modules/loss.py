@@ -12,7 +12,7 @@ def cross_entropy_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Ten
     # = -(logits[i] - max(logits) - log(sum(exp(logits[j] - max(logits)))))
     max_logits = logits.amax(dim=-1, keepdim=True)
     log_probs = logits - max_logits - torch.log(torch.exp(logits - max_logits).sum(dim=-1, keepdim=True))
-    losses = -log_probs[torch.arange(logits.shape[0]), targets]
+    losses = -log_probs.gather(-1, targets.unsqueeze(-1)).squeeze(-1)
     return losses.mean()
 
 
