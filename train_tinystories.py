@@ -10,6 +10,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from eecs148b_hw1.training.train import train as run_train
+
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Train on TinyStories (tokenized .npy files).")
@@ -50,6 +52,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Disable Weights & Biases logging (sets WANDB_MODE=disabled).",
     )
+    p.add_argument(
+        "--debug",
+        action="store_true",
+        help="Reduce length of dataset to just the context length for debugging model.",
+    )
     return p.parse_args()
 
 
@@ -57,8 +64,6 @@ def main() -> None:
     args = parse_args()
     if args.no_wandb:
         os.environ["WANDB_MODE"] = "disabled"
-
-    from eecs148b_hw1.training import train as run_train
 
     train_path = args.train_path.resolve()
     val_path = args.val_path.resolve()
@@ -69,6 +74,9 @@ def main() -> None:
 
     train_data = np.load(train_path, mmap_mode="r")
     val_data = np.load(val_path, mmap_mode="r")
+    if args.debug:
+        train_data = np.load(train_path, mmap_mode="r")[: args.context_length]
+        val_data = np.load(train_path, mmap_mode="r")[: args.context_length]
 
     wandb_run_name = args.wandb_run_name
     if wandb_run_name is None:
