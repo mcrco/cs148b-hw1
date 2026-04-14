@@ -1,4 +1,4 @@
-import json
+import pickle
 from collections.abc import Iterable, Iterator
 
 from eecs148b_hw1.bpe.utils import apply_merges, pretokenizer, split_on_special_tokens, str_to_bytes_list
@@ -18,12 +18,10 @@ class BPETokenizer:
     def from_files(
         cls, vocab_filepath: str, merges_filepath: str, special_tokens: list[str] | None = None
     ) -> "BPETokenizer":
-        """No clue if this actually works (probably doesn't)."""
         with open(vocab_filepath, "rb") as f:
-            vocab = json.load(f)
+            vocab = pickle.load(f)
         with open(merges_filepath, "rb") as f:
-            pairs = [line.split() for line in f.readlines()]
-            merges = [(pair[0], pair[1]) for pair in pairs]
+            merges = pickle.load(f)
 
         return BPETokenizer(vocab, merges, special_tokens)
 
