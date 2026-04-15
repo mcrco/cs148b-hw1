@@ -27,7 +27,7 @@ def parse_args() -> argparse.Namespace:
 
     p.add_argument("--epochs", type=int, default=1)
     p.add_argument("--lr", type=float, default=1e-3)
-    p.add_argument("--batch-size", type=int, default=2048)
+    p.add_argument("--batch-size", type=int, default=32)
     p.add_argument("--warmup-steps", type=int, default=50)
     p.add_argument("--beta1", type=float, default=0.9)
     p.add_argument("--beta2", type=float, default=0.999)
@@ -77,6 +77,9 @@ def main() -> None:
     if args.debug:
         train_data = np.load(train_path, mmap_mode="r")[: args.context_length + 2]
         val_data = np.load(train_path, mmap_mode="r")[: args.context_length + 2]
+
+    print(f"Training data token count: {len(train_data)}.")
+    print(f"Validation data token count: {len(val_data)}.")
 
     wandb_run_name = args.wandb_run_name
     if wandb_run_name is None:

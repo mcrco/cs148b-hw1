@@ -1,11 +1,11 @@
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from heapq import heapify, heappop, heappush
+from heapq import heappop, heappush
 
 from tqdm import tqdm
 
-from .utils import apply_merges, get_pretoken_counts, str_to_bytes_list
+from .utils import get_pretoken_counts, str_to_bytes_list
 
 
 @dataclass
@@ -32,7 +32,8 @@ def train_bpe(
     pair_counts: dict[tuple[bytes, bytes], int] = defaultdict(int)
     pair_pretokens: dict[tuple[bytes, bytes], set[str]] = defaultdict(set)
     seq_per_pretoken: dict[str, list[bytes]] = {}
-    for pretoken, count in pretoken_counts.items():
+    for pretoken, count in (pbar := tqdm(pretoken_counts.items(), disable=not progress_bar)):
+        pbar.set_description("Initializing vocabulary.")
         seq = str_to_bytes_list(pretoken)
         seq_per_pretoken[pretoken] = seq
         for i in range(len(seq) - 1):
@@ -41,8 +42,10 @@ def train_bpe(
             pair_pretokens[pair].add(pretoken)
 
     # Create max heap of pairs of tokens we can merge, ordered by count + lexicography.
-    pair_count_heap: list[MergeCandidate] = [MergeCandidate(count, pair) for pair, count in pair_counts.items()]
-    heapify(pair_count_heap)
+    pair_count_heap = []
+    for pair, count in (pbar := tqdm(pair_counts.items())):
+        pbar.set_description("Initializing pair count heap.")
+        heappush(pair_count_heap, MergeCandidate(count, pair))
 
     # Repeatedly pop pair of tokens with highest frequency and merge until
     # vocab size is reached or no more pairs can be merged.
