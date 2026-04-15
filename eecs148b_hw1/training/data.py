@@ -4,9 +4,12 @@ import torch
 
 
 def get_batch(x: npt.NDArray, indices: npt.NDArray, context_length: int, device: str):
+    # Indices start off as something like [[0], [1], [2], [3]].
     indices = np.asarray(indices, dtype=np.int64).reshape(-1, 1)
+    # Offsets are something like [[0, 1, 2, 3]].
     offsets = np.arange(context_length, dtype=np.int64).reshape(1, -1)
 
+    # Indices + offsets broadcasts to [[0, 0 + 1, 0 + 2, 0 + 3], [1 + 0, 1 + 1, ...]].
     input_tokens = np.asarray(x[indices + offsets])
     output_tokens = np.asarray(x[indices + offsets + 1])
 
