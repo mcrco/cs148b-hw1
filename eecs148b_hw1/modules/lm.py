@@ -46,7 +46,7 @@ class TransformerLM(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         token_embeddings = self.token_embeddings(x)
-        positional_embeddings = self.positional_embeddings(torch.arange(x.shape[-1]))
+        positional_embeddings = self.positional_embeddings(torch.arange(x.shape[-1], device=x.device))
         embeddings = token_embeddings + positional_embeddings
         out = embeddings
         for block in self.layers:
