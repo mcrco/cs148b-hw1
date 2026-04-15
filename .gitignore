@@ -1,6 +1,7 @@
 .cursor
 data/
 wandb
+weights
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -4,7 +4,7 @@ import torch
 
 
 def get_sequence(x: npt.NDArray, start: int, context_length: int, device: str) -> torch.Tensor:
-    return torch.from_numpy(x[start : start + context_length]).to(device).to(torch.long)
+    return torch.from_numpy(x[start : start + context_length].copy()).to(device).to(torch.long)
 
 
 def get_batch(x: npt.NDArray, indices: npt.NDArray, context_length: int, device: str):

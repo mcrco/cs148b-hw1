@@ -75,8 +75,8 @@ def main() -> None:
     train_data = np.load(train_path, mmap_mode="r")
     val_data = np.load(val_path, mmap_mode="r")
     if args.debug:
-        train_data = np.load(train_path, mmap_mode="r")[: args.context_length]
-        val_data = np.load(train_path, mmap_mode="r")[: args.context_length]
+        train_data = np.load(train_path, mmap_mode="r")[: args.context_length + 2]
+        val_data = np.load(train_path, mmap_mode="r")[: args.context_length + 2]
 
     wandb_run_name = args.wandb_run_name
     if wandb_run_name is None:
