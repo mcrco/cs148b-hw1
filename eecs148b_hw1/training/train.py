@@ -56,6 +56,9 @@ def train(
     wandb.init(project="cs148b", name=wandb_run_name)
 
     model = TransformerLM(d_model, num_heads, d_ff, vocab_size, context_length, num_layers, dtype=dtype, device=device)
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"Total parameters: {total_params}")
+
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=lr, weight_decay=weight_decay, betas=(beta1, beta2), eps=epsilon
     )
