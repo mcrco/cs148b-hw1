@@ -3,13 +3,15 @@ import numpy.typing as npt
 import torch
 
 
-def get_sequence(x: npt.NDArray, start: int, context_length: int, device: str) -> torch.Tensor:
-    return torch.from_numpy(x[start : start + context_length].copy()).to(device).to(torch.long)
-
-
 def get_batch(x: npt.NDArray, indices: npt.NDArray, context_length: int, device: str):
-    inputs = torch.stack([get_sequence(x, i, context_length, device) for i in indices])
-    outputs = torch.stack([get_sequence(x, i + 1, context_length, device) for i in indices])
+    indices = np.asarray(indices, dtype=np.int64).reshape(-1, 1)
+    offsets = np.arange(context_length, dtype=np.int64).reshape(1, -1)
+
+    input_tokens = np.asarray(x[indices + offsets])
+    output_tokens = np.asarray(x[indices + offsets + 1])
+
+    inputs = torch.from_numpy(input_tokens).to(device=device, dtype=torch.long)
+    outputs = torch.from_numpy(output_tokens).to(device=device, dtype=torch.long)
     return inputs, outputs
 
 
