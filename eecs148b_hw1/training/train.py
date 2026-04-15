@@ -1,7 +1,6 @@
-import os
+import math
 from pathlib import Path
 
-import numpy as np
 import numpy.typing as npt
 import torch
 from tqdm import tqdm
@@ -10,7 +9,7 @@ import wandb
 from eecs148b_hw1.modules.lm import TransformerLM
 from eecs148b_hw1.modules.loss import cross_entropy_loss, perplexity
 
-from .data import get_batch
+from .data import get_random_batch
 
 
 def get_lr(lr: float, step: int, warmup_steps: int) -> float:
@@ -19,17 +18,16 @@ def get_lr(lr: float, step: int, warmup_steps: int) -> float:
     return lr
 
 
-def get_batch_indices(
+def get_batches_per_epoch(
     dataset: npt.NDArray,
     context_length: int,
     batch_size: int,
-) -> list[npt.NDArray]:
-    # For dataset length L and context length C, inputs are indices [i, i + C)
-    # and ouputs are indices [i + 1, i + C + 1), so the maximum starting index
-    # for any sequence in a batch is L - C - 1.
-    max_index = len(dataset) - context_length - 1
-    indices = np.random.permutation(max_index + 1)
-    return [indices[i : min(max_index + 1, i + batch_size)] for i in range(0, max_index, batch_size)]
+) -> int:
+    num_valid_starts = len(dataset) - context_length
+    if num_valid_starts <= 0:
+        raise ValueError("Dataset must be longer than the context length.")
+    # Sample enough random batches to cover roughly one non-overlapping pass worth of tokens.
+    return max(1, math.ceil(num_valid_starts / (batch_size * context_length)))
 
 
 def train(
@@ -50,6 +48,8 @@ def train(
     train_dataset: npt.NDArray,
     val_dataset: npt.NDArray,
     wandb_run_name: str,
+    train_batches_per_epoch: int | None = None,
+    val_batches_per_epoch: int | None = None,
     dtype: torch.dtype = torch.float,
     device: str = "cuda",
 ):
@@ -64,19 +64,23 @@ def train(
     )
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: get_lr(lr, step, warmup_steps))
 
+    if train_batches_per_epoch is None:
+        train_batches_per_epoch = get_batches_per_epoch(train_dataset, context_length, batch_size)
+    if val_batches_per_epoch is None:
+        val_batches_per_epoch = get_batches_per_epoch(val_dataset, context_length, batch_size)
+
     # Progress bar logs in terms of training batches for more detail.
-    total_batches = epochs * len(get_batch_indices(train_dataset, context_length, batch_size))
+    total_batches = epochs * train_batches_per_epoch
     with tqdm(total=total_batches) as pbar:
         for epoch in range(epochs):
             # Training
             pbar.set_description(f"Epoch: {epoch}/{epochs} (training)")
             model.train()
-            train_batch_indices_list = get_batch_indices(train_dataset, context_length, batch_size)
-            for indices in train_batch_indices_list:
-                x, y = get_batch(train_dataset, indices, context_length, device)
+            for _ in range(train_batches_per_epoch):
+                x, y = get_random_batch(train_dataset, batch_size, context_length, device)
                 logits = model(x)
                 loss = cross_entropy_loss(logits, y)
-                wandb.log({"train/loss": loss}, step=pbar.n)
+                wandb.log({"train/loss": loss.item()}, step=pbar.n)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -86,15 +90,21 @@ def train(
             # Validation
             pbar.set_description(f"Epoch: {epoch}/{epochs} (validation)")
             model.eval()
-            val_batch_indices_list = get_batch_indices(val_dataset, context_length, batch_size)
             val_loss = 0
             val_pplx = 0
-            for indices in val_batch_indices_list:
-                x, y = get_batch(val_dataset, indices, context_length, device)
-                logits = model(x)
-                val_loss += torch.sum(cross_entropy_loss(logits, y)).item()
-                val_pplx += torch.sum(perplexity(logits, y)).item()
-            wandb.log({"val/loss": val_loss, "val/perplexity": val_pplx}, step=pbar.n)
+            with torch.no_grad():
+                for _ in range(val_batches_per_epoch):
+                    x, y = get_random_batch(val_dataset, batch_size, context_length, device)
+                    logits = model(x)
+                    val_loss += cross_entropy_loss(logits, y).item()
+                    val_pplx += perplexity(logits, y).item()
+            wandb.log(
+                {
+                    "val/loss": val_loss / val_batches_per_epoch,
+                    "val/perplexity": val_pplx / val_batches_per_epoch,
+                },
+                step=pbar.n,
+            )
 
     # Save model.
     weights_path = f"weights/{wandb_run_name}.pth"

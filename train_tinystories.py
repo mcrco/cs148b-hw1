@@ -28,6 +28,18 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--epochs", type=int, default=1)
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--batch-size", type=int, default=32)
+    p.add_argument(
+        "--train-batches-per-epoch",
+        type=int,
+        default=None,
+        help="Random training batches to sample per epoch. Default: approximate one non-overlapping pass.",
+    )
+    p.add_argument(
+        "--val-batches-per-epoch",
+        type=int,
+        default=None,
+        help="Random validation batches to sample per epoch. Default: approximate one non-overlapping pass.",
+    )
     p.add_argument("--warmup-steps", type=int, default=50)
     p.add_argument("--beta1", type=float, default=0.9)
     p.add_argument("--beta2", type=float, default=0.999)
@@ -105,6 +117,8 @@ def main() -> None:
         train_dataset=train_data,
         val_dataset=val_data,
         wandb_run_name=wandb_run_name,
+        train_batches_per_epoch=args.train_batches_per_epoch,
+        val_batches_per_epoch=args.val_batches_per_epoch,
         dtype=dtype,
         device=args.device,
     )
