@@ -1,6 +1,8 @@
 import pickle
 from collections.abc import Iterable, Iterator
 
+from tqdm import tqdm
+
 from eecs148b_hw1.bpe.utils import apply_merges, pretokenizer, split_on_special_tokens, str_to_bytes_list
 
 
@@ -13,6 +15,7 @@ class BPETokenizer:
         self.merges = merges
         self.merge_dict = {pair: i for i, pair in enumerate(merges)}
         self.special_tokens = special_tokens
+        self.pretoken_sequence_cache: dict[str, list[bytes]] = {}
 
     @classmethod
     def from_files(
@@ -25,21 +28,24 @@ class BPETokenizer:
 
         return BPETokenizer(vocab, merges, special_tokens)
 
-    def encode(self, text: str) -> list[int]:
+    def encode(self, text: str, progress_bar: bool = True) -> list[int]:
         if self.special_tokens:
             chunks = split_on_special_tokens(text, self.special_tokens)
         else:
             chunks = [text]
 
         ids = []
-        for chunk in chunks:
+        for chunk in tqdm(chunks, disable=not progress_bar):
             if self.special_tokens and chunk in self.special_tokens:
                 ids.append(self.vocab_idx[chunk.encode("utf-8")])
             else:
                 pretokens = pretokenizer.findall(chunk)
                 for pretoken in pretokens:
-                    seq = str_to_bytes_list(pretoken)
-                    seq = apply_merges(seq, self.merge_dict)
+                    if pretoken not in self.pretoken_sequence_cache:
+                        seq = str_to_bytes_list(pretoken)
+                        seq = apply_merges(seq, self.merge_dict)
+                        self.pretoken_sequence_cache[pretoken] = seq
+                    seq = self.pretoken_sequence_cache[pretoken]
                     for token in seq:
                         ids.append(self.vocab_idx[token])
         return ids
