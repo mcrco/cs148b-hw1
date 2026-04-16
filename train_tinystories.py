@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import random
 from datetime import datetime
 from pathlib import Path
 
@@ -11,6 +12,16 @@ import numpy as np
 import torch
 
 from eecs148b_hw1.training.train import train as run_train
+
+
+def set_seed(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,6 +39,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--epochs", type=int, default=1)
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--batch-size", type=int, default=32)
+    p.add_argument("--seed", type=int, default=0, help="Random seed for reproducible initialization and batch sampling.")
     p.add_argument(
         "--train-batches-per-epoch",
         type=int,
@@ -76,6 +88,7 @@ def main() -> None:
     args = parse_args()
     if args.no_wandb:
         os.environ["WANDB_MODE"] = "disabled"
+    set_seed(args.seed)
 
     train_path = args.train_path.resolve()
     val_path = args.val_path.resolve()
@@ -92,6 +105,7 @@ def main() -> None:
 
     print(f"Training data token count: {len(train_data)}.")
     print(f"Validation data token count: {len(val_data)}.")
+    print(f"Using seed: {args.seed}.")
 
     wandb_run_name = args.wandb_run_name
     if wandb_run_name is None:

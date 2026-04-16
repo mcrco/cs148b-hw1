@@ -106,9 +106,9 @@ def train(
                 step=pbar.n,
             )
 
-    # Save model.
-    weights_path = f"weights/{wandb_run_name}.pth"
-    weights_path = Path(weights_path)
-    Path(weights_path.parent).mkdir(parents=True, exist_ok=True)
-    torch.save(model.state_dict(), weights_path)
-    print(f"Saved weights to {weights_path}")
+            # Save model.
+            weights_path = f"weights/{wandb_run_name}/epoch-{epoch}.pth"
+            weights_path = Path(weights_path)
+            Path(weights_path.parent).mkdir(parents=True, exist_ok=True)
+            torch.save(model.state_dict(), weights_path)
+            print(f"Saved weights to {weights_path}")
