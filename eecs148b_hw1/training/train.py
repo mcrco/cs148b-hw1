@@ -50,12 +50,25 @@ def train(
     wandb_run_name: str,
     train_batches_per_epoch: int | None = None,
     val_batches_per_epoch: int | None = None,
+    use_layernorm: bool = True,
+    use_positional_embeddings: bool = True,
     dtype: torch.dtype = torch.float,
     device: str = "cuda",
 ):
     wandb.init(project="cs148b", name=wandb_run_name)
 
-    model = TransformerLM(d_model, num_heads, d_ff, vocab_size, context_length, num_layers, dtype=dtype, device=device)
+    model = TransformerLM(
+        d_model,
+        num_heads,
+        d_ff,
+        vocab_size,
+        context_length,
+        num_layers,
+        use_layernorm=use_layernorm,
+        use_positional_embeddings=use_positional_embeddings,
+        dtype=dtype,
+        device=device,
+    )
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total parameters: {total_params}")
 

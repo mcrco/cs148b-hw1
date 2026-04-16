@@ -18,6 +18,8 @@ class TransformerLM(nn.Module):
         vocab_size: int,
         context_length: int,
         num_layers: int,
+        use_layernorm: bool = True,
+        use_positional_embeddings: bool = True,
         dtype=None,
         device=None,
     ) -> None:
@@ -28,20 +30,33 @@ class TransformerLM(nn.Module):
         self.vocab_size = vocab_size
         self.context_length = context_length
         self.num_layers = num_layers
+        self.use_layernorm = use_layernorm
+        self.use_positional_embeddings = use_positional_embeddings
         self.dtype = dtype
         self.device = device
 
         self.token_embeddings = Embedding(self.vocab_size, self.d_model, dtype=self.dtype, device=self.device)
         self.positional_embeddings = SinusoidalPositionalEncoding(
-            self.d_model, self.context_length, dtype=self.dtype, device=self.device
+            self.d_model,
+            self.context_length,
+            use_positional_embeddings=self.use_positional_embeddings,
+            dtype=self.dtype,
+            device=self.device,
         )
         self.layers = nn.ModuleList(
             [
-                TransformerBlock(self.d_model, self.num_heads, self.d_ff, dtype=self.dtype, device=self.device)
+                TransformerBlock(
+                    self.d_model,
+                    self.num_heads,
+                    self.d_ff,
+                    use_layernorm=self.use_layernorm,
+                    dtype=self.dtype,
+                    device=self.device,
+                )
                 for _ in range(self.num_layers)
             ]
         )
-        self.ln_final = LayerNorm(self.d_model, dtype=self.dtype, device=self.device)
+        self.ln_final = LayerNorm(self.d_model, dtype=self.dtype, device=self.device) if self.use_layernorm else nn.Identity()
         self.lm_head = Linear(self.d_model, self.vocab_size, dtype=self.dtype, device=self.device)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

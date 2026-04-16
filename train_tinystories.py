@@ -35,6 +35,16 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--d-ff", type=int, default=1024)
     p.add_argument("--context-length", type=int, default=256)
     p.add_argument("--num-layers", type=int, default=4)
+    p.add_argument(
+        "--no-layernorm",
+        action="store_true",
+        help="Replace all LayerNorm modules with nn.Identity for ablation experiments.",
+    )
+    p.add_argument(
+        "--no-positional-embeddings",
+        action="store_true",
+        help="Zero out sinusoidal positional embeddings for ablation experiments.",
+    )
 
     p.add_argument("--epochs", type=int, default=1)
     p.add_argument("--lr", type=float, default=1e-3)
@@ -133,6 +143,8 @@ def main() -> None:
         wandb_run_name=wandb_run_name,
         train_batches_per_epoch=args.train_batches_per_epoch,
         val_batches_per_epoch=args.val_batches_per_epoch,
+        use_layernorm=not args.no_layernorm,
+        use_positional_embeddings=not args.no_positional_embeddings,
         dtype=dtype,
         device=args.device,
     )
