@@ -77,6 +77,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--device", default="cuda", help='Device, e.g. "cuda", "cuda:0", or "cpu".')
 
     p.add_argument(
+        "--load-weights",
+        type=Path,
+        default=None,
+        help="Optional path to a .pth checkpoint to initialize the model from before training.",
+    )
+    p.add_argument(
         "--wandb-run-name",
         default=None,
         help="Weights are saved as weights/<name>.pth. Default: tinystories-YYYYMMDD-HHMMSS.",
@@ -147,6 +153,7 @@ def main() -> None:
         use_positional_embeddings=not args.no_positional_embeddings,
         dtype=dtype,
         device=args.device,
+        load_weights=args.load_weights,
     )
 
 

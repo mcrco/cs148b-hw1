@@ -54,6 +54,7 @@ def train(
     use_positional_embeddings: bool = True,
     dtype: torch.dtype = torch.float,
     device: str = "cuda",
+    load_weights: str | Path | None = None,
 ):
     wandb.init(project="cs148b", name=wandb_run_name)
 
@@ -69,6 +70,13 @@ def train(
         dtype=dtype,
         device=device,
     )
+    if load_weights is not None:
+        load_weights = Path(load_weights)
+        if not load_weights.is_file():
+            raise FileNotFoundError(f"Checkpoint not found: {load_weights}")
+        state = torch.load(load_weights, map_location=device)
+        model.load_state_dict(state)
+        print(f"Loaded weights from {load_weights}")
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total parameters: {total_params}")
 
