@@ -115,7 +115,7 @@ def run_layernorm(
         Float[Tensor, "... d_model"]: Tensor with the output of running LayerNorm on `in_features`.
     """
     layernorm = LayerNorm(d_model, eps)
-    layernorm.load_state_dict({"G": weight, "b": bias})
+    layernorm.load_state_dict({"weight": weight, "bias": bias})
     return layernorm(in_features)
 
 
@@ -187,7 +187,7 @@ def run_multihead_self_attention(
             "q_proj.weight": q_proj_weight,
             "k_proj.weight": k_proj_weight,
             "v_proj.weight": v_proj_weight,
-            "o_proj.weight": o_proj_weight,
+            "output_proj.weight": o_proj_weight,
         }
     )
     return mha(in_features)

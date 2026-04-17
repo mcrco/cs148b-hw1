@@ -20,7 +20,7 @@ class MergeCandidate:
 
 
 def train_bpe(
-    input_path: str | os.PathLike, vocab_size: int, special_tokens: list[str] | None = None, progress_bar=True
+    input_path: str | os.PathLike, vocab_size: int, special_tokens: list[str] | None = None, progress_bar=False
 ) -> tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
     with open(input_path) as f:
         text = f.read()
@@ -43,7 +43,7 @@ def train_bpe(
 
     # Create max heap of pairs of tokens we can merge, ordered by count + lexicography.
     pair_count_heap = []
-    for pair, count in (pbar := tqdm(pair_counts.items())):
+    for pair, count in (pbar := tqdm(pair_counts.items(), disable=not progress_bar)):
         pbar.set_description("Initializing pair count heap.")
         heappush(pair_count_heap, MergeCandidate(count, pair))
 

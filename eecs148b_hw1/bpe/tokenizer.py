@@ -28,7 +28,7 @@ class BPETokenizer:
 
         return BPETokenizer(vocab, merges, special_tokens)
 
-    def encode(self, text: str, progress_bar: bool = True) -> list[int]:
+    def encode(self, text: str, progress_bar: bool = False) -> list[int]:
         if self.special_tokens:
             chunks = split_on_special_tokens(text, self.special_tokens)
         else:
