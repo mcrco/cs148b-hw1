@@ -12,10 +12,10 @@ from eecs148b_hw1.modules.loss import cross_entropy_loss, perplexity
 from .data import get_random_batch
 
 
-def get_lr(lr: float, step: int, warmup_steps: int) -> float:
+def get_lr_multiplier(step: int, warmup_steps: int) -> float:
     if step < warmup_steps:
-        return lr * float(step) / float(warmup_steps)
-    return lr
+        return float(step) / float(warmup_steps)
+    return 1.0
 
 
 def get_batches_per_epoch(
@@ -75,7 +75,7 @@ def train(
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=lr, weight_decay=weight_decay, betas=(beta1, beta2), eps=epsilon
     )
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: get_lr(lr, step, warmup_steps))
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: get_lr_multiplier(step, warmup_steps))
 
     if train_batches_per_epoch is None:
         train_batches_per_epoch = get_batches_per_epoch(train_dataset, context_length, batch_size)
